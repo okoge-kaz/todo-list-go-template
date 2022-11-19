@@ -1,3 +1,9 @@
 # Binaries
 ./todolist.go
-docker/db/
+
+# DB
+docker/db/data/
+
+
+# tmp
+tmp/
