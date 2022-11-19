@@ -32,7 +32,7 @@ services:
       TZ: 'Asia/Tokyo'
     volumes:
       - ./docker/db/sql:/docker-entrypoint-initdb.d
-      #- ./docker/db/data:/var/lib/mysql  ## uncomment to keep the data
+      - ./docker/db/data:/var/lib/mysql  ## uncomment to keep the data
     ports:
       - 3306:3306
   phpmyadmin:
