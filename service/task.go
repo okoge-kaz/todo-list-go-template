@@ -18,16 +18,28 @@ func TaskList(ctx *gin.Context) {
 		return
 	}
 
+	// Get query parameter
+	keyword := ctx.Query("keyword")
+
 	// Get tasks in DB
 	var tasks []database.Task
-	err = db.Select(&tasks, "SELECT * FROM tasks") // Use DB#Select for multiple entries
+
+	switch {
+	case keyword != "":
+		// キーワード検索
+		err = db.Select(&tasks, "SELECT * FROM tasks WHERE title LIKE ? OR description LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
+	default:
+		// 全件取得
+		// pixiv で ikumin さんに指摘されたが、SQLのパフォーマンス的にもこうするほうがよい
+		err = db.Select(&tasks, "SELECT * FROM tasks")
+	}
 	if err != nil {
 		Error(http.StatusInternalServerError, err.Error())(ctx)
 		return
 	}
 
 	// Render tasks
-	ctx.HTML(http.StatusOK, "task_list.html", gin.H{"Title": "Task list", "Tasks": tasks})
+	ctx.HTML(http.StatusOK, "task_list.html", gin.H{"Title": "Task list", "Tasks": tasks, "Keyword": keyword})
 }
 
 // ShowTask renders a task with given ID
