@@ -35,6 +35,12 @@ func main() {
 	engine.GET("/", service.Home)
 	engine.GET("/list", service.TaskList)
 	engine.GET("/task/:id", service.ShowTask) // ":id" is a parameter
+	// Create, Update, Delete
+	engine.GET("/task/new", service.NewTaskForm)
+	engine.POST("/task/new", service.NewTask)
+	engine.GET("/task/:id/edit", service.NotImplemented)
+	engine.POST("/task/:id/edit", service.NotImplemented)
+	engine.POST("/task/:id/delete", service.NotImplemented)
 
 	// start server
 	engine.Run(fmt.Sprintf(":%d", port))

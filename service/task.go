@@ -56,3 +56,32 @@ func ShowTask(ctx *gin.Context) {
 	// Render task
 	ctx.HTML(http.StatusOK, "task.html", task)
 }
+
+// form to create new task
+func NewTaskForm(ctx *gin.Context) {
+	ctx.HTML(http.StatusOK, "form_new_task.html", gin.H{"Title": "New task registration"})
+}
+
+// create new task
+func NewTask(ctx *gin.Context) {
+	// Get DB connection
+	db, err := database.GetConnection()
+	if err != nil {
+		Error(http.StatusInternalServerError, err.Error())(ctx)
+		return
+	}
+
+	// Get form data
+	title := ctx.PostForm("title")
+	description := ctx.PostForm("description")
+
+	// Insert a task
+	_, err = db.Exec("INSERT INTO tasks (title, description) VALUES (?, ?)", title, description)
+	if err != nil {
+		Error(http.StatusInternalServerError, err.Error())(ctx)
+		return
+	}
+
+	// Redirect to task list
+	ctx.Redirect(http.StatusFound, "/list")
+}
