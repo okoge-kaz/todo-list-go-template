@@ -135,10 +135,14 @@ func EditTask(ctx *gin.Context) {
 	}
 	// Get form data
 	title := ctx.PostForm("title")
+	is_done := ctx.PostForm("is_done")
 	description := ctx.PostForm("description")
 
+	// 型変換
+	is_done_bool, _ := strconv.ParseBool(is_done)
+
 	// Update a task
-	result, err := db.Exec("UPDATE tasks SET title=?, description=? WHERE id=?", title, description, id)
+	result, err := db.Exec("UPDATE tasks SET title=?, is_done=?, description=? WHERE id=?", title, is_done_bool, description, id)
 	if err != nil {
 		Error(http.StatusInternalServerError, err.Error())(ctx)
 		return
