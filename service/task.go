@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -76,12 +77,16 @@ func NewTask(ctx *gin.Context) {
 	description := ctx.PostForm("description")
 
 	// Insert a task
-	_, err = db.Exec("INSERT INTO tasks (title, description) VALUES (?, ?)", title, description)
+	result, err := db.Exec("INSERT INTO tasks (title, description) VALUES (?, ?)", title, description)
 	if err != nil {
 		Error(http.StatusInternalServerError, err.Error())(ctx)
 		return
 	}
 
-	// Redirect to task list
-	ctx.Redirect(http.StatusFound, "/list")
+	// Render status
+	path := "/list" // デフォルトではタスク一覧ページへ戻る
+	if id, err := result.LastInsertId(); err == nil {
+		path = fmt.Sprintf("/task/%d", id) // 正常にIDを取得できた場合は /task/<id> へ戻る
+	}
+	ctx.Redirect(http.StatusFound, path)
 }
