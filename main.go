@@ -41,6 +41,9 @@ func main() {
 	engine.GET("/task/:id/edit", service.EditTaskForm)
 	engine.POST("/task/:id/edit", service.EditTask)
 	engine.GET("/task/:id/delete", service.DeleteTask)
+	// user registration
+	engine.GET("/user/new", service.NewUserForm)
+	engine.POST("/user/new", service.RegisterUser)
 
 	// start server
 	engine.Run(fmt.Sprintf(":%d", port))
