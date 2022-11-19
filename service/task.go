@@ -90,3 +90,64 @@ func NewTask(ctx *gin.Context) {
 	}
 	ctx.Redirect(http.StatusFound, path)
 }
+
+// form to edit task
+func EditTaskForm(ctx *gin.Context) {
+	// ID の取得
+	// /task/:id/edit
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		Error(http.StatusBadRequest, err.Error())(ctx)
+		return
+	}
+	// Get DB connection
+	db, err := database.GetConnection()
+	if err != nil {
+		Error(http.StatusInternalServerError, err.Error())(ctx)
+		return
+	}
+	// Get target task
+	var task database.Task
+	err = db.Get(&task, "SELECT * FROM tasks WHERE id=?", id)
+	if err != nil {
+		Error(http.StatusBadRequest, err.Error())(ctx)
+		return
+	}
+	// Render edit form
+	ctx.HTML(http.StatusOK, "form_edit_task.html",
+		gin.H{"Title": fmt.Sprintf("Edit task %d", task.ID), "Task": task})
+}
+
+// edit task
+func EditTask(ctx *gin.Context) {
+	// Get DB connection
+	db, err := database.GetConnection()
+	if err != nil {
+		Error(http.StatusInternalServerError, err.Error())(ctx)
+		return
+	}
+
+	// /task/:id/edit
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		Error(http.StatusBadRequest, err.Error())(ctx)
+		return
+	}
+	// Get form data
+	title := ctx.PostForm("title")
+	description := ctx.PostForm("description")
+
+	// Update a task
+	result, err := db.Exec("UPDATE tasks SET title=?, description=? WHERE id=?", title, description, id)
+	if err != nil {
+		Error(http.StatusInternalServerError, err.Error())(ctx)
+		return
+	}
+
+	// Render status
+	path := "/list" // デフォルトではタスク一覧ページへ戻る
+	if rows, err := result.RowsAffected(); err == nil && rows == 1 {
+		path = fmt.Sprintf("/task/%d", id) // 正常に1行更新できた場合は /task/<id> へ戻る
+	}
+	ctx.Redirect(http.StatusFound, path)
+}

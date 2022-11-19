@@ -38,8 +38,8 @@ func main() {
 	// Create, Update, Delete
 	engine.GET("/task/new", service.NewTaskForm)
 	engine.POST("/task/new", service.NewTask)
-	engine.GET("/task/:id/edit", service.NotImplemented)
-	engine.POST("/task/:id/edit", service.NotImplemented)
+	engine.GET("/task/:id/edit", service.EditTaskForm)
+	engine.POST("/task/:id/edit", service.EditTask)
 	engine.POST("/task/:id/delete", service.NotImplemented)
 
 	// start server
