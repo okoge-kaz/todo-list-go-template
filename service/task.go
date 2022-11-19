@@ -155,3 +155,31 @@ func EditTask(ctx *gin.Context) {
 	}
 	ctx.Redirect(http.StatusFound, path)
 }
+
+// delete task
+func DeleteTask(ctx *gin.Context) {
+	// Get DB connection
+	db, err := database.GetConnection()
+	if err != nil {
+		Error(http.StatusInternalServerError, err.Error())(ctx)
+		return
+	}
+
+	// /task/:id/delete
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		Error(http.StatusBadRequest, err.Error())(ctx)
+		return
+	}
+
+	// Delete a task
+	_, err = db.Exec("DELETE FROM tasks WHERE id=?", id)
+	if err != nil {
+		Error(http.StatusInternalServerError, err.Error())(ctx)
+		return
+	}
+
+	// Render status
+	path := "/list" // デフォルトではタスク一覧ページへ戻る
+	ctx.Redirect(http.StatusFound, path)
+}
