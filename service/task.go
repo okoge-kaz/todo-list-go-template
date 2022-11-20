@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	database "todolist.go/db"
 )
@@ -18,20 +19,26 @@ func TaskList(ctx *gin.Context) {
 		return
 	}
 
+	// get login user
+	userID := sessions.Default(ctx).Get("user_key")
+
 	// Get query parameter
 	keyword := ctx.Query("keyword")
 
 	// Get tasks in DB
 	var tasks []database.Task
 
+	// rails active record のようには書けないらしい
+	query := "SELECT  id, title, is_done, description, created_at FROM tasks INNER JOIN ownership ON tasks.id = ownership.task_id WHERE ownership.user_id = ?"
+
 	switch {
 	case keyword != "":
 		// キーワード検索
-		err = db.Select(&tasks, "SELECT * FROM tasks WHERE title LIKE ? OR description LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
+		err = db.Select(&tasks, query+"AND ( title LIKE ? OR description LIKE ? )", userID, "%"+keyword+"%", "%"+keyword+"%")
 	default:
 		// 全件取得
 		// pixiv で ikumin さんに指摘されたが、SQLのパフォーマンス的にもこうするほうがよい
-		err = db.Select(&tasks, "SELECT * FROM tasks")
+		err = db.Select(&tasks, query, userID)
 	}
 	if err != nil {
 		Error(http.StatusInternalServerError, err.Error())(ctx)
