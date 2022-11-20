@@ -67,3 +67,42 @@ Official site: https://jmoiron.github.io/sqlx/
     id := ctx.Param("id")
   })
   ```
+
+## Directory structure
+
+```
+.
+├── Dockerfile
+├── Makefile
+├── README.md
+├── assets
+│   ├── script.js
+│   └── style.css
+├── db
+│   ├── conn.go
+│   └── entity.go
+├── docker
+│   └── db
+├── docker-compose.yml
+├── go.mod
+├── go.sum
+├── main.go
+├── service
+│   ├── default.go
+│   ├── task.go
+│   └── user.go
+├── tmp
+│   ├── build-errors.log
+│   └── main
+└── views
+    ├── _footer.html
+    ├── _header.html
+    ├── change_password_form.html
+    ├── error.html
+    ├── form_edit_task.html
+    ├── form_new_task.html
+    ├── index.html
+    ├── new_user_form.html
+    ├── task.html
+    └── task_list.html
+```
