@@ -44,6 +44,8 @@ func main() {
 	// user registration
 	engine.GET("/user/new", service.NewUserForm)
 	engine.POST("/user/new", service.RegisterUser)
+	engine.GET("/user/change_password", service.ChangePasswordForm)
+	engine.POST("/user/change_password", service.ChangePassword)
 
 	// start server
 	engine.Run(fmt.Sprintf(":%d", port))

@@ -67,7 +67,58 @@ func RegisterUser(ctx *gin.Context) {
 		Error(http.StatusInternalServerError, err.Error())(ctx)
 		return
 	}
-	ctx.JSON(http.StatusOK, user)
+
+	ctx.Redirect(http.StatusFound, "/")
+}
+
+// change password
+func ChangePasswordForm(ctx *gin.Context) {
+	ctx.HTML(http.StatusOK, "change_password_form.html", gin.H{"Title": "Change password"})
+}
+
+func ChangePassword(ctx *gin.Context) {
+	// フォームデータの受け取り
+	username := ctx.PostForm("username")
+	oldPassword := ctx.PostForm("old_password")
+	newPassword := ctx.PostForm("new_password")
+
+	if newPassword == "" {
+		ctx.HTML(http.StatusBadRequest, "change_password_form.html", gin.H{"Title": "Change password", "Error": "New password is not provided"})
+		return
+	}
+
+	if len(newPassword) < 8 {
+		ctx.HTML(http.StatusBadRequest, "change_password_form.html", gin.H{"Title": "Change password", "Error": "New password must be at least 8 characters"})
+		return
+	}
+
+	// db 接続
+	db, err := database.GetConnection()
+	if err != nil {
+		Error(http.StatusInternalServerError, err.Error())(ctx)
+		return
+	}
+
+	// old password is correct?
+	var user database.User
+	err = db.Get(&user, "SELECT id, name, password FROM users WHERE name = ?", username)
+	if err != nil {
+		Error(http.StatusInternalServerError, err.Error())(ctx)
+		return
+	}
+	if user.Password == nil || string(user.Password) != string(hash(oldPassword)) {
+		ctx.HTML(http.StatusBadRequest, "change_password_form.html", gin.H{"Title": "Change password", "Error": "Old password is incorrect"})
+		return
+	}
+
+	// update password
+	_, err = db.Exec("UPDATE users SET password = ? WHERE id = ?", hash(newPassword), user.ID)
+	if err != nil {
+		Error(http.StatusInternalServerError, err.Error())(ctx)
+		return
+	}
+
+	ctx.Redirect(http.StatusFound, "/")
 }
 
 // private
