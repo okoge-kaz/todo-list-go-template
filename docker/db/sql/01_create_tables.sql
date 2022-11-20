@@ -21,9 +21,9 @@ CREATE TABLE `users` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4;
 
-DROP TABLE IF EXISTS `ownership`;
+DROP TABLE IF EXISTS `ownerships`;
 
-CREATE TABLE `ownership` (
+CREATE TABLE `ownerships` (
     `user_id` bigint(20) NOT NULL,
     `task_id` bigint(20) NOT NULL,
     PRIMARY KEY (`user_id`, `task_id`)
