@@ -29,7 +29,7 @@ func TaskList(ctx *gin.Context) {
 	var tasks []database.Task
 
 	// rails active record のようには書けないらしい
-	query := "SELECT  id, title, is_done, description, created_at FROM tasks INNER JOIN ownership ON tasks.id = ownership.task_id WHERE ownership.user_id = ?"
+	query := "SELECT  id, title, is_done, description, created_at FROM tasks INNER JOIN ownerships ON tasks.id = ownerships.task_id WHERE ownerships.user_id = ?"
 
 	switch {
 	case keyword != "":

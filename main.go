@@ -47,13 +47,19 @@ func main() {
 
 	// Grouping /task/xxx
 	{
-		taskGroup.GET("/:id", service.ShowTask) // ":id" is a parameter
 		// Create, Update, Delete
-		engine.GET("/new", service.NewTaskForm)
-		engine.POST("/new", service.NewTask)
-		engine.GET("/:id/edit", service.EditTaskForm)
-		engine.POST("/:id/edit", service.EditTask)
-		engine.GET("/:id/delete", service.DeleteTask)
+		taskGroup.GET("/new", service.NewTaskForm)
+		taskGroup.POST("/new", service.NewTask)
+
+		taskGroup.GET("/:id", service.TaskAccessCheck, service.ShowTask) // ":id" is a parameter
+		//:id
+		taskIDGroup := taskGroup.Group("/:id")
+		taskIDGroup.Use(service.TaskAccessCheck)
+		{
+			taskIDGroup.GET("/edit", service.EditTaskForm)
+			taskIDGroup.POST("/edit", service.EditTask)
+			taskIDGroup.GET("/delete", service.DeleteTask)
+		}
 	}
 
 	// user registration

@@ -173,6 +173,19 @@ func LoginCheck(ctx *gin.Context) {
 	}
 }
 
+// user can access this task?
+func TaskAccessCheck(ctx *gin.Context) {
+	// task id を取得
+	taskID := ctx.Param("id")
+
+	if isValidUser(ctx, taskID) {
+		ctx.Next()
+	} else {
+		ctx.Redirect(http.StatusFound, "/list") // エラーメッセージが欲しい
+		ctx.Abort()
+	}
+}
+
 // logout
 func Logout(ctx *gin.Context) {
 	session := sessions.Default(ctx)
@@ -189,4 +202,31 @@ func hash(password string) []byte {
 	h.Write([]byte(salt))
 	h.Write([]byte(password))
 	return h.Sum(nil)
+}
+
+// is valid user?
+func isValidUser(ctx *gin.Context, taskID string) bool {
+	// session から user を取得
+	session := sessions.Default(ctx)
+	userID := session.Get(userKey)
+
+	// db 接続
+	db, err := database.GetConnection()
+	if err != nil {
+		Error(http.StatusInternalServerError, err.Error())(ctx)
+		return false
+	}
+
+	// user が task を持っているか
+	var count int
+	err = db.Get(&count, "SELECT COUNT(*) FROM tasks INNER JOIN ownerships ON tasks.id = ownerships.task_id WHERE tasks.id = ? AND ownerships.user_id = ?", taskID, userID)
+
+	if err != nil {
+		Error(http.StatusInternalServerError, err.Error())(ctx)
+		return false
+	}
+	if count == 0 {
+		return false
+	}
+	return true
 }
