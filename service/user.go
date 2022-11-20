@@ -151,7 +151,7 @@ func Login(ctx *gin.Context) {
 		return
 	}
 	if hex.EncodeToString(user.Password) != hex.EncodeToString(hash(password)) {
-		ctx.HTML(http.StatusBadRequest, "login_form.html", gin.H{"Title": "Login", "Username": username, "Error": "Username or Password is incorrect"})
+		ctx.HTML(http.StatusBadRequest, "login.html", gin.H{"Title": "Login", "Username": username, "Error": "Username or Password is incorrect"})
 		return
 	}
 
