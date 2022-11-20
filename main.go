@@ -9,7 +9,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/gin-contrib/sessions"
-  "github.com/gin-contrib/sessions/cookie"
+	"github.com/gin-contrib/sessions/cookie"
 
 	"todolist.go/db"
 	"todolist.go/service"
@@ -40,19 +40,30 @@ func main() {
 	// routing
 	engine.Static("/assets", "./assets")
 	engine.GET("/", service.Home)
-	engine.GET("/list", service.TaskList)
-	engine.GET("/task/:id", service.ShowTask) // ":id" is a parameter
-	// Create, Update, Delete
-	engine.GET("/task/new", service.NewTaskForm)
-	engine.POST("/task/new", service.NewTask)
-	engine.GET("/task/:id/edit", service.EditTaskForm)
-	engine.POST("/task/:id/edit", service.EditTask)
-	engine.GET("/task/:id/delete", service.DeleteTask)
+	engine.GET("/list", service.LoginCheck, service.TaskList)
+
+	taskGroup := engine.Group("/task")
+	taskGroup.Use(service.LoginCheck)
+
+	// Grouping /task/xxx
+	{
+		taskGroup.GET("/:id", service.ShowTask) // ":id" is a parameter
+		// Create, Update, Delete
+		engine.GET("/new", service.NewTaskForm)
+		engine.POST("/new", service.NewTask)
+		engine.GET("/:id/edit", service.EditTaskForm)
+		engine.POST("/:id/edit", service.EditTask)
+		engine.GET("/:id/delete", service.DeleteTask)
+	}
+
 	// user registration
 	engine.GET("/user/new", service.NewUserForm)
 	engine.POST("/user/new", service.RegisterUser)
 	engine.GET("/user/change_password", service.ChangePasswordForm)
 	engine.POST("/user/change_password", service.ChangePassword)
+	// login
+	engine.GET("/login", service.LoginForm)
+	engine.POST("/login", service.Login)
 
 	// start server
 	engine.Run(fmt.Sprintf(":%d", port))

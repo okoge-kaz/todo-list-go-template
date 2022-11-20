@@ -2,8 +2,10 @@ package service
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"net/http"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	database "todolist.go/db"
 )
@@ -118,6 +120,65 @@ func ChangePassword(ctx *gin.Context) {
 		return
 	}
 
+	ctx.Redirect(http.StatusFound, "/")
+}
+
+// login form
+func LoginForm(ctx *gin.Context) {
+	ctx.HTML(http.StatusOK, "login.html", gin.H{"Title": "Login"})
+}
+
+// login
+const userKey = "user_key"
+
+func Login(ctx *gin.Context) {
+	// フォームデータの受け取り
+	username := ctx.PostForm("username")
+	password := ctx.PostForm("password")
+
+	// db 接続
+	db, err := database.GetConnection()
+	if err != nil {
+		Error(http.StatusInternalServerError, err.Error())(ctx)
+		return
+	}
+
+	// password is correct?
+	var user database.User
+	err = db.Get(&user, "SELECT id, name, password FROM users WHERE name = ?", username)
+	if err != nil {
+		ctx.HTML(http.StatusBadRequest, "login.html", gin.H{"Title": "Login", "Username": username, "Error": "No such user"})
+		return
+	}
+	if hex.EncodeToString(user.Password) != hex.EncodeToString(hash(password)) {
+		ctx.HTML(http.StatusBadRequest, "login_form.html", gin.H{"Title": "Login", "Username": username, "Error": "Username or Password is incorrect"})
+		return
+	}
+
+	// session に user を保存
+	session := sessions.Default(ctx)
+	session.Set(userKey, user.ID)
+	session.Save()
+
+	ctx.Redirect(http.StatusFound, "/list")
+}
+
+// user login check  (auth middleware)
+func LoginCheck(ctx *gin.Context) {
+	if sessions.Default(ctx).Get(userKey) == nil {
+		ctx.Redirect(http.StatusFound, "/login")
+		ctx.Abort()
+	} else {
+		ctx.Next()
+	}
+}
+
+// logout
+func Logout(ctx *gin.Context) {
+	session := sessions.Default(ctx)
+	session.Clear()
+	session.Options(sessions.Options{MaxAge: -1})
+	session.Save()
 	ctx.Redirect(http.StatusFound, "/")
 }
 
