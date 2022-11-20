@@ -5,6 +5,9 @@
   <li><a href="/user/new">ユーザ登録</a></li>
   <li><a href="/user/change_password">パスワード変更</a></li>
   <li><a href="/login">ログイン</a></li>
+  {{ if .IsLoggedIn }}
+  <li><a href="/logout">ログアウト</a></li>
+  {{ end }}
 </ul>
 
 {{ template "footer" }}
