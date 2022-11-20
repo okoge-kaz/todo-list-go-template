@@ -84,6 +84,9 @@ func NewTaskForm(ctx *gin.Context) {
 
 // create new task
 func NewTask(ctx *gin.Context) {
+	// get login user
+	userID := sessions.Default(ctx).Get("user_key")
+
 	// Get DB connection
 	db, err := database.GetConnection()
 	if err != nil {
@@ -95,12 +98,28 @@ func NewTask(ctx *gin.Context) {
 	title := ctx.PostForm("title")
 	description := ctx.PostForm("description")
 
-	// Insert a task
-	result, err := db.Exec("INSERT INTO tasks (title, description) VALUES (?, ?)", title, description)
+	// Insert a task with transaction
+	transaction := db.MustBegin()
+	// tasks table
+	result, err := transaction.Exec("INSERT INTO tasks (title, description) VALUES (?, ?)", title, description)
 	if err != nil {
 		Error(http.StatusInternalServerError, err.Error())(ctx)
 		return
 	}
+	// ownerships table
+	taskID, err := result.LastInsertId()
+	if err != nil {
+		transaction.Rollback()
+		Error(http.StatusInternalServerError, err.Error())(ctx)
+		return
+	}
+	_, err = transaction.Exec("INSERT INTO ownerships (user_id, task_id) VALUES (?, ?)", userID, taskID)
+	if err != nil {
+		transaction.Rollback()
+		Error(http.StatusInternalServerError, err.Error())(ctx)
+		return
+	}
+	transaction.Commit()
 
 	// Render status
 	path := "/list" // デフォルトではタスク一覧ページへ戻る
