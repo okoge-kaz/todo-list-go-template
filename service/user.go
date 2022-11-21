@@ -195,6 +195,36 @@ func Logout(ctx *gin.Context) {
 	ctx.Redirect(http.StatusFound, "/")
 }
 
+// delete user
+func DeleteUser(ctx *gin.Context) {
+	// db 接続
+	db, err := database.GetConnection()
+	if err != nil {
+		Error(http.StatusInternalServerError, err.Error())(ctx)
+		return
+	}
+
+	// session から user id を取得
+	session := sessions.Default(ctx)
+	userID := session.Get(userKey)
+
+	// user を削除
+	_, err = db.Exec("DELETE FROM users WHERE id = ?", userID)
+	if err != nil {
+		Error(http.StatusInternalServerError, err.Error())(ctx)
+		return
+	}
+
+	// session を削除
+	// user の削除はできているが、session が残っている
+	session = sessions.Default(ctx)
+	session.Clear()
+	session.Options(sessions.Options{MaxAge: -1})
+	session.Save()
+
+	ctx.HTML(http.StatusOK, "delete_user.html", gin.H{"Title": "Delete user"})
+}
+
 // private
 func hash(password string) []byte {
 	const salt = "todolist.go#"

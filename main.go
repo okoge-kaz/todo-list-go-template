@@ -65,13 +65,22 @@ func main() {
 	// user registration
 	engine.GET("/user/new", service.NewUserForm)
 	engine.POST("/user/new", service.RegisterUser)
-	engine.GET("/user/change_password", service.ChangePasswordForm)
-	engine.POST("/user/change_password", service.ChangePassword)
+
+	// logged in user
+	userGroup := engine.Group("/user")
+	userGroup.Use(service.LoginCheck)
+	{
+		// change password
+		userGroup.GET("/change_password", service.ChangePasswordForm)
+		userGroup.POST("/change_password", service.ChangePassword)
+		// delete user
+		userGroup.GET("/delete", service.DeleteUser)
+	}
 	// login
 	engine.GET("/login", service.LoginForm)
 	engine.POST("/login", service.Login)
 	// logout
-	engine.GET("/logout", service.Logout)
+	engine.GET("/logout", service.LoginCheck, service.Logout)
 
 	// start server
 	engine.Run(fmt.Sprintf(":%d", port))
